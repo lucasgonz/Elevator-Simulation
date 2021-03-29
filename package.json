@@ -1,0 +1,30 @@
+{
+    "name": "tp3-systeme-expert",
+    "version": "1.0.0",
+    "description": "tp3 IA",
+    "scripts": {
+        "dev": "webpack serve --mode=development",
+        "build": "webpack --mode=production"
+    },
+    "license": "MIT",
+    "prettier": {
+        "tabWidth": 4,
+        "printWidth": 115
+    },
+    "devDependencies": {
+        "copy-webpack-plugin": "^8.1.0",
+        "html-webpack-plugin": "^5.2.0",
+        "prettier": "^2.2.1",
+        "ts-loader": "^8.0.18",
+        "typescript": "^4.2.3",
+        "webpack": "^5.23.0",
+        "webpack-cli": "^4.5.0",
+        "webpack-dev-server": "^3.11.2"
+    },
+    "dependencies": {
+        "@types/jquery": "^3.5.5",
+        "@types/p5": "^0.9.1",
+        "jquery": "^3.6.0",
+        "open": "^8.0.4"
+    }
+}
