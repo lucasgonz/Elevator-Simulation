@@ -19,6 +19,7 @@ export default class Environement {
         for (var floor of range(this.config.floor)) this.entities.push(new Floor(floor - 1));
         for (var elevator of range(this.config.elevator)) this.entities.push(new Elevator(elevator - 1));
         let p = new People();
+        let p1 = new People();
     };
 
     registerEntity = (entity: Entity): void => {

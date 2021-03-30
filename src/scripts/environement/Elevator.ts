@@ -1,3 +1,4 @@
+import * as p5 from "p5";
 import { environement } from "..";
 import Entity from "../utils/Entity";
 import Floor from "./Floor";
@@ -32,30 +33,26 @@ export default class Elevator extends Entity {
         this.queueDestination = new Array<Floor>();
         this.queueWaitingPeople = new Array<People>();
         this.currState = ElevatorState.Waiting;
-        this.currentFloor = environement.getEntity(Floor)[1];
+        this.currentFloor = environement.getEntity(Floor)[4];
         this.pos = this.currentFloor.getRelativeFloorPosition();
-        //this.goToFloor(4);
+        //this.goToFloor(3);
     }
 
     // return direction for closest destination
-    get direction() {
-        if (this.currentFloor.floorNumber < this.queueDestination[0].floorNumber) return "up";
-        else return "down";
-    }
 
     // return wating position given the number of people waiting
     get waitingPos() {
-        var pos = createVector(this.pos.x + this.queueWaitingPeople.length * 10, this.pos.y, this.pos.z);
+        var pos = createVector(this.pos.x - (this.queueWaitingPeople.length + 1) * 40, this.pos.y, this.pos.z);
         return pos;
     }
 
     goToFloor = (floor: number) => {
+        console.log(environement.getEntity(Floor)[floor]);
         this.queueDestination.push(environement.getEntity(Floor)[floor]);
     };
 
-    hasArrived = (): boolean => {
-        // division is for pixel translation floor
-        return this.pos.y === this.queueDestination[0].getRelativeFloorPosition().y;
+    addRequest = (floor: Floor) => {
+        if (!this.queueDestination.includes(floor)) this.queueDestination.push(floor);
     };
 
     run = (): void => {
@@ -67,12 +64,14 @@ export default class Elevator extends Entity {
 
             // Moving to destination
             case ElevatorState.Moving:
-                if (this.hasArrived()) {
+                if (this.hasArrived(this.queueDestination[0].getRelativeFloorPosition(), "Vert")) {
+                    this.currentFloor = this.queueDestination[0];
+                    this.direction = undefined;
                     this.queueDestination.shift();
                     // Check if more dest to do
                     if (this.queueDestination.length == 0) this.currState = ElevatorState.Waiting;
                 } else {
-                    this.direction == "up" ? (this.pos.y -= 1) : (this.pos.y += 1);
+                    this.moveUpdate(this.queueDestination[0].getRelativeFloorPosition());
                 }
                 break;
 
