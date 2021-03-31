@@ -1,11 +1,12 @@
 import Entity from "../utils/Entity";
-import { range } from "../utils/Utils";
+import { gen_poisson, random_exponential, range } from "../utils/Utils";
 import Elevator from "./Elevator";
 import Floor from "./Floor";
 import People from "./People";
 
 export default class Environement {
     private config: Config;
+    private second: number = 0;
 
     public entities: Array<Entity>;
 
@@ -18,8 +19,11 @@ export default class Environement {
         // Regsiter entities from config
         for (var floor of range(this.config.floor)) this.entities.push(new Floor(floor - 1));
         for (var elevator of range(this.config.elevator)) this.entities.push(new Elevator(elevator - 1));
-        let p = new People();
-        let p1 = new People();
+        //let p = new People();
+        //let p1 = new People();
+        this.second = second();
+
+        //gen_poisson(0.5, 1)
     };
 
     registerEntity = (entity: Entity): void => {
@@ -32,6 +36,17 @@ export default class Environement {
 
     render = (): void => {
         background(240);
+
+        // Generate new people poisson law
+        if (this.second != second()) {
+            for (var val of gen_poisson(0.5, 1)) {
+                //this.entities.push(new People());
+                //console.log(1);
+            }
+
+            this.second = second();
+        }
+
         this.entities.forEach((entity) => {
             entity.events.shift()?.call(this);
             entity.render();

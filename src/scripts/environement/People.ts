@@ -25,7 +25,7 @@ export default class People extends Entity {
 
     constructor() {
         super();
-        environement.registerEntity(this);
+        //environement.registerEntity(this);
         this.currentFloor = environement.getEntity(Floor)[0];
         this.desiredDestination = environement.getEntity(Elevator)[0].waitingPos;
         this.currState = PeopleState.Mooving;
