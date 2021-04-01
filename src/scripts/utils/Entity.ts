@@ -26,9 +26,9 @@ export default class Entity {
 
         if (this.pos.x > destination.x) return (this.pos.x -= this.speed), (this.direction = "left");
 
-        if (this.pos.y < destination.y) return (this.pos.y += this.speed), (this.direction = "down");
+        if (this.pos.y <= destination.y) return (this.pos.y += this.speed), (this.direction = "down");
 
-        if (this.pos.y > destination.y) return (this.pos.y -= this.speed), (this.direction = "up");
+        if (this.pos.y >= destination.y) return (this.pos.y -= this.speed), (this.direction = "up");
     };
 
     moveTo = (vector: p5.Vector): void => {

@@ -3,6 +3,7 @@ import { environement } from "..";
 import Entity from "../utils/Entity";
 import Elevator from "./Elevator";
 import Floor from "./Floor";
+import { ElevatorState } from "./Elevator";
 
 enum PeopleState {
     Mooving,
@@ -16,33 +17,47 @@ enum PeopleState {
 
 export default class People extends Entity {
     private currentElevator: Elevator | undefined;
-    private currentFloor: Floor;
+    public currentFloor: Floor;
     private desiredDestination: p5.Vector;
-    private desiredFloor: Floor | undefined;
+    private desiredFloor: Floor;
     private color: any = color(random(255), random(255), random(255));
 
     public currState: PeopleState;
 
     constructor() {
         super();
-        //environement.registerEntity(this);
+        // Every one start first floor
         this.currentFloor = environement.getEntity(Floor)[0];
-        this.desiredDestination = environement.getEntity(Elevator)[0].waitingPos;
+        this.desiredFloor = this.getDesiredFloor();
+        this.desiredDestination = this.getDesiredElevator().waitingPos;
         this.currState = PeopleState.Mooving;
-
         //
-        this.pos = this.currentFloor.getRelativeFloorPosition();
-        this.pos.x = Math.round(-width / 2);
+        this.pos = this.startPos;
     }
 
     get randomSide() {
-        return Math.random() < 0.5 ? "right" : "left";
+        // -1: left , 1 : right
+        return Math.random() < 0.5 ? -1 : 1;
     }
+
+    get startPos() {
+        var pos = this.currentFloor.getRelativeFloorPosition().copy();
+        pos.x = pos.x = Math.round((width * this.randomSide) / 2);
+        return pos;
+    }
+
+    getDesiredFloor = (): Floor => {
+        return environement.getEntityRandom(Floor, 1);
+    };
+
+    getDesiredElevator = (): Elevator => {
+        return environement.getEntityRandom(Elevator);
+    };
 
     callElevator = (number: number) => {
         var elevator = environement.getEntity(Elevator)[number];
         elevator.queueWaitingPeople.push(this);
-        elevator.addRequest(this.currentFloor);
+        console.log(elevator.addRequest(this.currentFloor));
     };
 
     pressBtnFloor = (number: number) => {
@@ -56,8 +71,8 @@ export default class People extends Entity {
             // Wainting for destination
             case PeopleState.Mooving:
                 if (this.hasArrived(this.desiredDestination, "Horz")) {
-                    this.currState = PeopleState.CallElevator;
                     this.direction = undefined;
+                    this.currState = PeopleState.CallElevator;
                 } else {
                     this.moveUpdate(this.desiredDestination);
                 }
@@ -65,38 +80,46 @@ export default class People extends Entity {
 
             // Moving to destination
             case PeopleState.CallElevator:
-                this.events.push(this.callElevator(0));
-                this.currentElevator = environement.getEntity(Elevator)[0];
+                this.currentElevator = this.getDesiredElevator();
+                this.events.push(this.callElevator(this.currentElevator.elevatorID));
                 this.currState = PeopleState.Waiting;
                 break;
 
             case PeopleState.Waiting:
+                if (this.currentElevator?.currState == ElevatorState.Moving) return;
                 if (this.currentElevator?.currentFloor == this.currentFloor) {
-                    this.desiredDestination = this.currentElevator.pos;
+                    this.desiredDestination = this.currentElevator.pos.copy();
                     this.currState = PeopleState.Boarding;
                 }
                 break;
 
             case PeopleState.Boarding:
                 if (this.hasArrived(this.desiredDestination, "Horz")) {
-                    this.currState = PeopleState.Riding;
                     this.direction = undefined;
-                    this.pressBtnFloor(3);
+                    this.currentElevator?.removeFromWaiting(this);
+                    console.log(this.currentElevator?.queueWaitingPeople);
+                    this.pressBtnFloor(this.desiredFloor.floorNumber);
+                    this.currState = PeopleState.Riding;
                 } else {
                     this.moveUpdate(this.desiredDestination);
                 }
+                break;
 
             case PeopleState.Riding:
-                if (this.currentElevator?.currentFloor != this.desiredFloor)
+                if (this.currentElevator?.currentFloor != this.desiredFloor) {
                     //@ts-ignore
-                    this.pos.y = this.currentElevator?.pos.y;
-                else {
+                    this.pos.y = this.currentElevator?.pos.copy().y;
+                    //@ts-ignore
+                    this.currentFloor = this.currentElevator?.currentFloor;
+                } else {
                     this.currState = PeopleState.Exiting;
-                    console.log("I exited");
                 }
                 break;
             case PeopleState.Exiting:
+                this.currentElevator = undefined;
+                break;
             case PeopleState.Exited:
+                break;
         }
     };
 

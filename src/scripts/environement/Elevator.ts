@@ -4,7 +4,7 @@ import Entity from "../utils/Entity";
 import Floor from "./Floor";
 import People from "./People";
 
-enum ElevatorState {
+export enum ElevatorState {
     Waiting,
     Moving,
     Opening,
@@ -19,6 +19,7 @@ export default class Elevator extends Entity {
     private doorWidth: number = Elevator.width / 2;
     private doorHeight: number = Elevator.height;
     private doorDepth: number = Elevator.depth / 10;
+    private doorDisplacement: number = Elevator.width / 4;
 
     public currentFloor: Floor;
     public currState: ElevatorState;
@@ -34,7 +35,8 @@ export default class Elevator extends Entity {
         this.queueWaitingPeople = new Array<People>();
         this.currState = ElevatorState.Waiting;
         this.currentFloor = environement.getEntity(Floor)[4];
-        this.pos = this.currentFloor.getRelativeFloorPosition();
+        this.pos = this.currentFloor.getRelativeFloorPosition().copy();
+
         //this.goToFloor(3);
     }
 
@@ -46,13 +48,31 @@ export default class Elevator extends Entity {
         return pos;
     }
 
+    isDoorOpen = (): boolean => {
+        return this.doorDisplacement >= Elevator.width / 2;
+    };
+
+    isDoorClose = (): boolean => {
+        return this.doorDisplacement <= Elevator.width / 4;
+    };
+
     goToFloor = (floor: number) => {
-        console.log(environement.getEntity(Floor)[floor]);
         this.queueDestination.push(environement.getEntity(Floor)[floor]);
     };
 
+    updateFloor = () => {};
+
     addRequest = (floor: Floor) => {
-        if (!this.queueDestination.includes(floor)) this.queueDestination.push(floor);
+        if (!this.queueDestination.includes(floor)) return this.queueDestination.push(floor);
+    };
+
+    removeFromWaiting = (people: People): void => {
+        var index = this.queueWaitingPeople.indexOf(people);
+        this.queueWaitingPeople.splice(index, 1);
+    };
+
+    peopleWaitingForFloor = (floor: Floor): Array<People> => {
+        return this.queueWaitingPeople.filter((people) => people.currentFloor === this.currentFloor);
     };
 
     run = (): void => {
@@ -68,15 +88,27 @@ export default class Elevator extends Entity {
                     this.currentFloor = this.queueDestination[0];
                     this.direction = undefined;
                     this.queueDestination.shift();
-                    // Check if more dest to do
-                    if (this.queueDestination.length == 0) this.currState = ElevatorState.Waiting;
+                    this.currState = ElevatorState.Opening;
                 } else {
                     this.moveUpdate(this.queueDestination[0].getRelativeFloorPosition());
                 }
                 break;
 
             case ElevatorState.Opening:
+                if (!this.isDoorOpen()) {
+                    this.doorDisplacement += 0.1;
+                    break;
+                }
+                if (this.peopleWaitingForFloor(this.currentFloor).length == 0)
+                    this.currState = ElevatorState.Closing;
+                break;
             case ElevatorState.Closing:
+                if (!this.isDoorClose()) {
+                    this.doorDisplacement -= 0.1;
+                    break;
+                }
+                this.currState = ElevatorState.Waiting;
+                break;
         }
     };
 
@@ -96,8 +128,12 @@ export default class Elevator extends Entity {
 
         // draw dors
         fill("rgba(75%, 100%, 75%, 0.5)");
-        translate(0, 0, 20);
-        box(this.doorWidth, this.doorHeight, this.doorDepth);
+        [-1, 1].forEach((sign) => {
+            push();
+            translate(this.doorDisplacement * sign, 0, 20);
+            box(this.doorWidth, this.doorHeight, this.doorDepth);
+            pop();
+        });
 
         pop();
     };
