@@ -1,13 +1,13 @@
 import * as p5 from "p5";
 import Entity from "../utils/Entity";
 import Elevator from "./Elevator";
+import People from "./People";
 
 export default class Floor extends Entity {
     private width: number = width;
     private height: number = 2;
     private depth: number = 20;
     private floorDisplacement: number = Elevator.height + 50;
-
     public floorNumber: number;
 
     constructor(floorNumber: number) {
@@ -25,10 +25,13 @@ export default class Floor extends Entity {
     render = (): void => {
         // set
         push();
+
+        // draw body
         strokeWeight(2);
         if (this.floorNumber == 0) stroke(255, 204, 0);
         translate(this.pos);
         box(this.width, this.height, this.depth);
+
         pop();
     };
 }

@@ -3,7 +3,7 @@ import { Vector } from "p5";
 import Environement from "../environement/Environement";
 
 export default class Entity {
-    private speed: number = 3;
+    private speed: number = 5;
 
     public pos: Vector;
     public events: Array<any>;
@@ -14,13 +14,12 @@ export default class Entity {
         this.pos = createVector(0, 0, 0);
     }
 
-    /*getPos() {
-        this.pos.x = Math.round(this.pos.x);
-        this.pos.y = Math.round(this.pos.y);
-        this.pos.z = Math.round(this.pos.z);
-        return this.pos;
-    }*/
+    get randomSide() {
+        // -1: left , 1 : right
+        return Math.random() < 0.5 ? -1 : 1;
+    }
 
+    // update position and direction with given Vector
     moveUpdate = (destination: p5.Vector) => {
         if (this.pos.x < destination.x) return (this.pos.x += this.speed), (this.direction = "right");
 
@@ -31,10 +30,13 @@ export default class Entity {
         if (this.pos.y >= destination.y) return (this.pos.y -= this.speed), (this.direction = "up");
     };
 
+    // Apply concreate translation on environement
     moveTo = (vector: p5.Vector): void => {
         translate(vector);
     };
 
+    // Check if arrived with vector comparaison
+    // Manual check x && y cause we dont use z axis
     hasArrived = (destination: p5.Vector, axis: string): boolean => {
         if (axis === "Horz") {
             if (this.direction == "right") return this.pos.x >= destination.x;

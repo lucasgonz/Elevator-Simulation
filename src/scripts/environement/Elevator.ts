@@ -20,6 +20,7 @@ export default class Elevator extends Entity {
     private doorHeight: number = Elevator.height;
     private doorDepth: number = Elevator.depth / 10;
     private doorDisplacement: number = Elevator.width / 4;
+    private doorSpeed: number = 0.15;
 
     public currentFloor: Floor;
     public currState: ElevatorState;
@@ -36,53 +37,54 @@ export default class Elevator extends Entity {
         this.currState = ElevatorState.Waiting;
         this.currentFloor = environement.getEntity(Floor)[4];
         this.pos = this.currentFloor.getRelativeFloorPosition().copy();
-
-        //this.goToFloor(3);
     }
 
-    // return direction for closest destination
-
     // return wating position given the number of people waiting
-    get waitingPos() {
-        var pos = createVector(this.pos.x - (this.queueWaitingPeople.length + 1) * 40, this.pos.y, this.pos.z);
+    getWaitingPosFloor(floor: Floor) {
+        var waitingNb = this.queueWaitingPeople.filter((people) => people.currentFloor == floor).length;
+        var pos = createVector(this.pos.x - (waitingNb + 1) * 40, this.pos.y, this.pos.z);
         return pos;
     }
 
+    // return if door finisehd opened
     isDoorOpen = (): boolean => {
         return this.doorDisplacement >= Elevator.width / 2;
     };
 
+    // return if door finisehd closed
     isDoorClose = (): boolean => {
         return this.doorDisplacement <= Elevator.width / 4;
     };
 
+    // add floor to queue destination
     goToFloor = (floor: number) => {
         this.queueDestination.push(environement.getEntity(Floor)[floor]);
     };
 
-    updateFloor = () => {};
-
+    // add floor to queue dest if does not alearady exist
     addRequest = (floor: Floor) => {
         if (!this.queueDestination.includes(floor)) return this.queueDestination.push(floor);
     };
 
+    // remove people from waiting list
     removeFromWaiting = (people: People): void => {
         var index = this.queueWaitingPeople.indexOf(people);
         this.queueWaitingPeople.splice(index, 1);
     };
 
+    //  add people to waiting list
     peopleWaitingForFloor = (floor: Floor): Array<People> => {
         return this.queueWaitingPeople.filter((people) => people.currentFloor === this.currentFloor);
     };
 
     run = (): void => {
         switch (this.currState) {
-            // Wainting for destination
+            // Wait if does't have any panned destination
             case ElevatorState.Waiting:
                 if (this.queueDestination.length > 0) this.currState = ElevatorState.Moving;
                 break;
 
-            // Moving to destination
+            // Update dest until arried to desired destination
             case ElevatorState.Moving:
                 if (this.hasArrived(this.queueDestination[0].getRelativeFloorPosition(), "Vert")) {
                     this.currentFloor = this.queueDestination[0];
@@ -94,17 +96,20 @@ export default class Elevator extends Entity {
                 }
                 break;
 
+            // Open gate with given spped && wait for people waiting to be in
             case ElevatorState.Opening:
                 if (!this.isDoorOpen()) {
-                    this.doorDisplacement += 0.1;
+                    this.doorDisplacement += this.doorSpeed;
                     break;
                 }
                 if (this.peopleWaitingForFloor(this.currentFloor).length == 0)
                     this.currState = ElevatorState.Closing;
                 break;
+
+            // Close gate with given spped
             case ElevatorState.Closing:
                 if (!this.isDoorClose()) {
-                    this.doorDisplacement -= 0.1;
+                    this.doorDisplacement -= this.doorSpeed;
                     break;
                 }
                 this.currState = ElevatorState.Waiting;

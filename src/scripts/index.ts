@@ -25,7 +25,6 @@ function draw() {
     orbitControl();
     // setup camera initial
     translate(0, 90, -300);
+    // environement life cycle
     environement.render();
-
-    rotateX(90);
 }
