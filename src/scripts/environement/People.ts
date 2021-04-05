@@ -20,7 +20,7 @@ enum PeopleState {
 }
 
 export default class People extends Entity {
-    private currentElevator: Elevator | undefined;
+    private currentElevator: Elevator;
     public currentFloor: Floor;
     private desiredDestination: p5.Vector;
     private desiredFloor: Floor;
@@ -33,7 +33,8 @@ export default class People extends Entity {
         // Every one start first floor
         this.currentFloor = environement.getEntity(Floor)[0];
         this.desiredFloor = this.getDesiredFloor();
-        this.desiredDestination = this.getDesiredElevator().getWaitingPosFloor(this.currentFloor);
+        this.currentElevator = this.getDesiredElevator();
+        this.desiredDestination = this.currentElevator.getWaitingPosFloor(this.currentFloor);
         this.intention = [
             //Phase 1
             PeopleState.Mooving,
@@ -109,7 +110,6 @@ export default class People extends Entity {
 
             // Moving to destination
             case PeopleState.CallElevator:
-                this.currentElevator = this.getDesiredElevator();
                 this.events.push(this.callElevator(this.currentElevator.elevatorID));
                 this.updateState();
                 break;

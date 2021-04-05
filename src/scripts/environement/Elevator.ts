@@ -1,6 +1,7 @@
 import * as p5 from "p5";
-import { environement } from "..";
+import { CONFIG, environement } from "..";
 import Entity from "../utils/Entity";
+import { FCFS, isEven, OrdonencementState, SSTF, posFractionInterval } from "../utils/Utils";
 import Floor from "./Floor";
 import People from "./People";
 
@@ -21,6 +22,7 @@ export default class Elevator extends Entity {
     private doorDepth: number = Elevator.depth / 10;
     private doorDisplacement: number = Elevator.width / 4;
     private doorSpeed: number = 0.15;
+    private ordonencement: OrdonencementState = OrdonencementState.FCFS;
 
     public currentFloor: Floor;
     public currState: ElevatorState;
@@ -35,13 +37,30 @@ export default class Elevator extends Entity {
         this.queueDestination = new Array<Floor>();
         this.queueWaitingPeople = new Array<People>();
         this.currState = ElevatorState.Waiting;
-        this.currentFloor = environement.getEntity(Floor)[4];
-        this.pos = this.currentFloor.getRelativeFloorPosition().copy();
+        this.currentFloor = environement.getEntityRandom(Floor);
+        this.pos = this.getStartPos();
     }
+
+    getStartPos = (): p5.Vector => {
+        if (CONFIG.elevator == 1) return this.currentFloor.getRelativeFloorPosition().copy();
+        else {
+            var pos = this.currentFloor.getRelativeFloorPosition().copy();
+
+            pos.x = posFractionInterval(
+                Math.round(-width / 2),
+                Math.round(width / 2),
+                // 1+1 /2
+                (1 + this.elevatorID) / (CONFIG.elevator + 1)
+            );
+
+            return pos;
+        }
+    };
 
     // return wating position given the number of people waiting
     getWaitingPosFloor(floor: Floor) {
         var waitingNb = this.queueWaitingPeople.filter((people) => people.currentFloor == floor).length;
+        console.log(waitingNb);
         var pos = createVector(this.pos.x - (waitingNb + 1) * 40, this.pos.y, this.pos.z);
         return pos;
     }
@@ -86,13 +105,27 @@ export default class Elevator extends Entity {
 
             // Update dest until arried to desired destination
             case ElevatorState.Moving:
-                if (this.hasArrived(this.queueDestination[0].getRelativeFloorPosition(), "Vert")) {
+                // Fix position
+                var destination = this.queueDestination[0].getRelativeFloorPosition();
+                destination.x = this.pos.x;
+                //
+                if (this.hasArrived(destination, "Vert")) {
                     this.currentFloor = this.queueDestination[0];
                     this.direction = undefined;
-                    this.queueDestination.shift();
+
+                    var previusFloor = this.queueDestination.shift();
+                    switch (this.ordonencement) {
+                        case OrdonencementState.FCFS:
+                            this.queueDestination = FCFS(this.queueDestination);
+                            break;
+                        case OrdonencementState.SSTF:
+                            //@ts-ignore
+                            this.queueDestination = SSTF(previusFloor, this.queueDestination);
+                    }
+
                     this.currState = ElevatorState.Opening;
                 } else {
-                    this.moveUpdate(this.queueDestination[0].getRelativeFloorPosition());
+                    this.moveUpdate(destination);
                 }
                 break;
 
