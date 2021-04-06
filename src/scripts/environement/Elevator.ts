@@ -1,7 +1,7 @@
 import * as p5 from "p5";
 import { CONFIG, environement } from "..";
 import Entity from "../utils/Entity";
-import { FCFS, isEven, OrdonencementState, SSTF, posFractionInterval } from "../utils/Utils";
+import { FCFS, OrdonencementState, SSTF, posFractionInterval, PolitiqueR } from "../utils/Utils";
 import Floor from "./Floor";
 import People from "./People";
 
@@ -22,7 +22,9 @@ export default class Elevator extends Entity {
     private doorDepth: number = Elevator.depth / 10;
     private doorDisplacement: number = Elevator.width / 4;
     private doorSpeed: number = 0.15;
-    private ordonencement: OrdonencementState = OrdonencementState.FCFS;
+    private ordonencement: OrdonencementState;
+    private poliiqueR: PolitiqueR;
+    private previusFloor: Floor | undefined;
 
     public currentFloor: Floor;
     public currState: ElevatorState;
@@ -37,7 +39,10 @@ export default class Elevator extends Entity {
         this.queueDestination = new Array<Floor>();
         this.queueWaitingPeople = new Array<People>();
         this.currState = ElevatorState.Waiting;
-        this.currentFloor = environement.getEntityRandom(Floor);
+        this.ordonencement = CONFIG.ordonencement;
+        this.poliiqueR = CONFIG.politiqueR;
+        this.currentFloor = environement.getEntityRandom(Floor, 1);
+        this.previusFloor = this.currentFloor;
         this.pos = this.getStartPos();
     }
 
@@ -60,7 +65,6 @@ export default class Elevator extends Entity {
     // return wating position given the number of people waiting
     getWaitingPosFloor(floor: Floor) {
         var waitingNb = this.queueWaitingPeople.filter((people) => people.currentFloor == floor).length;
-        console.log(waitingNb);
         var pos = createVector(this.pos.x - (waitingNb + 1) * 40, this.pos.y, this.pos.z);
         return pos;
     }
@@ -100,30 +104,43 @@ export default class Elevator extends Entity {
         switch (this.currState) {
             // Wait if does't have any panned destination
             case ElevatorState.Waiting:
-                if (this.queueDestination.length > 0) this.currState = ElevatorState.Moving;
-                break;
-
-            // Update dest until arried to desired destination
-            case ElevatorState.Moving:
-                // Fix position
-                var destination = this.queueDestination[0].getRelativeFloorPosition();
-                destination.x = this.pos.x;
-                //
-                if (this.hasArrived(destination, "Vert")) {
-                    this.currentFloor = this.queueDestination[0];
-                    this.direction = undefined;
-
-                    var previusFloor = this.queueDestination.shift();
+                if (this.queueDestination.length > 0) {
+                    // Change with given ordonencement methode
                     switch (this.ordonencement) {
                         case OrdonencementState.FCFS:
                             this.queueDestination = FCFS(this.queueDestination);
                             break;
                         case OrdonencementState.SSTF:
                             //@ts-ignore
-                            this.queueDestination = SSTF(previusFloor, this.queueDestination);
+                            this.queueDestination = SSTF(this.previusFloor, this.queueDestination);
+                            break;
                     }
+                    this.currState = ElevatorState.Moving;
+                }
+                break;
 
+            /*switch (this.poliiqueR) {
+                    case PolitiqueR.Millieu:
+                        var floors = environement.getEntity(Floor);
+                        this.goToFloor(Math.round(floors.length / 2));
+                        break;
+                    case PolitiqueR.Inferieur:
+                        this.goToFloor(this.currentFloor.floorNumber - 1);
+                        break;
+                }*/
+
+            // Update dest until arried to desired destination
+            case ElevatorState.Moving:
+                // Fix position
+                var destination = this.queueDestination[0].getRelativeFloorPosition();
+                destination.x = this.pos.x;
+
+                if (this.hasArrived(destination, "Vert")) {
+                    this.currentFloor = this.queueDestination[0];
+                    this.direction = undefined;
+                    this.previusFloor = this.queueDestination.shift();
                     this.currState = ElevatorState.Opening;
+                    //if (this.queueWaitingPeople.length <= 0) this.currState = ElevatorState.Waiting;
                 } else {
                     this.moveUpdate(destination);
                 }
@@ -135,6 +152,7 @@ export default class Elevator extends Entity {
                     this.doorDisplacement += this.doorSpeed;
                     break;
                 }
+                // Wait for every one waiting to get in
                 if (this.peopleWaitingForFloor(this.currentFloor).length == 0)
                     this.currState = ElevatorState.Closing;
                 break;
@@ -165,7 +183,10 @@ export default class Elevator extends Entity {
         box(Elevator.width, Elevator.height, Elevator.depth);
 
         // draw dors
-        fill("rgba(75%, 100%, 75%, 0.5)");
+        if (this.elevatorID == 0) fill("rgba(224, 130, 131, 0.5)");
+        if (this.elevatorID == 1) fill("rgba(11, 156, 49, 0.5)");
+        if (this.elevatorID == 2) fill("rgba(0,0, 255, 0.6)");
+
         [-1, 1].forEach((sign) => {
             push();
             translate(this.doorDisplacement * sign, 0, 20);

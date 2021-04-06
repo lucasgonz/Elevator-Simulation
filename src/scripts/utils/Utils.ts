@@ -63,16 +63,19 @@ export function gen_poisson(lambda: number, T: number) {
     return q;
 }
 
+// swap element in arr
 export function swapArrEl(a: any, b: any, Arr: Array<any>): void {
-    var b = Arr[a];
+    var tmp = Arr[a];
     Arr[a] = Arr[b];
-    Arr[b] = b;
+    Arr[b] = tmp;
 }
 
+// return bool even
 export function isEven(n: number): boolean {
     return n % 2 == 0;
 }
 
+// return number in interval with given ration
 export function posFractionInterval(start: number, end: number, fraction: number): number {
     var arr = new Array<number>();
     for (var i = start; i < end; i++) arr.push(i);

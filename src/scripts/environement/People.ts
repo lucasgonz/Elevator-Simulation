@@ -1,5 +1,5 @@
 import * as p5 from "p5";
-import { environement } from "..";
+import { environement, globalStats } from "..";
 import Entity from "../utils/Entity";
 import Elevator from "./Elevator";
 import Floor from "./Floor";
@@ -27,6 +27,8 @@ export default class People extends Entity {
     private color: any = color(random(255), random(255), random(255));
     private intention: Array<PeopleState>;
     private workingTime: number = 10;
+
+    public waiting: number = 0;
 
     constructor() {
         super();
@@ -115,6 +117,7 @@ export default class People extends Entity {
                 break;
 
             case PeopleState.Waiting:
+                this.waiting += 1;
                 if (this.currentElevator?.currState == ElevatorState.Moving) return;
                 if (this.currentElevator?.currentFloor == this.currentFloor) {
                     this.desiredDestination = this.currentElevator.pos.copy();
@@ -158,7 +161,8 @@ export default class People extends Entity {
             case PeopleState.Working:
                 // if (this.workingTime == second()) {
                 this.direction = undefined;
-                this.desiredDestination = this.getDesiredElevator().getWaitingPosFloor(this.currentFloor);
+                this.currentElevator = this.getDesiredElevator();
+                this.desiredDestination = this.currentElevator.getWaitingPosFloor(this.currentFloor);
                 this.desiredFloor = environement.getEntity(Floor)[0];
                 this.updateState();
                 //}
@@ -172,6 +176,7 @@ export default class People extends Entity {
                 break;
 
             case PeopleState.Die:
+                globalStats.waitingPerception.push(this.waiting);
                 environement.removeEnity(this);
                 break;
         }
@@ -185,7 +190,10 @@ export default class People extends Entity {
 
         // draw shapes
         noStroke();
-        fill(this.color);
+        if (this.currentElevator.elevatorID == 0) fill("rgba(224, 130, 131, 0.5)");
+        if (this.currentElevator.elevatorID == 1) fill("rgba(11, 156, 49, 0.5)");
+        if (this.currentElevator.elevatorID == 2) fill("rgba(58, 263, 155, 0.5)");
+        //fill(this.color);
         ellipsoid(10, 20, 2, 4, 4);
 
         pop();

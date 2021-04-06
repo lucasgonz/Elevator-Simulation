@@ -54,7 +54,7 @@ export default class Environement {
 
         // Generate new people poisson law
         if (this.second != second()) {
-            for (var val of gen_poisson(0.4, 1)) {
+            for (var val of gen_poisson(0.5, 0)) {
                 this.entities.push(new People());
             }
 

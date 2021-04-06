@@ -1,5 +1,6 @@
 import Environement from "./environement/Environement";
 import { initListners } from "./utils/LisenersEnv";
+import { OrdonencementState, PolitiqueR } from "./utils/Utils";
 
 window.onload = initListners;
 
@@ -8,10 +9,14 @@ window.setup = setup;
 window.draw = draw;
 
 export const CONFIG = {
-    elevator: 3,
+    elevator: 1,
     floor: 6,
-    ordonencement: "FCFS",
-    politiqueR: "Millieu",
+    ordonencement: OrdonencementState.FCFS,
+    politiqueR: PolitiqueR.Millieu,
+};
+
+export const globalStats = {
+    waitingPerception: new Array<number>(),
 };
 
 export var environement: Environement = new Environement(CONFIG);
