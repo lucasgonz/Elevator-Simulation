@@ -10,37 +10,48 @@ export enum PolitiqueR {
     Inferieur,
 }
 
+// First Come First Serd
 export function FCFS(ArrFloor: Array<Floor>): Array<Floor> {
     return ArrFloor;
 }
 
-export function SSTF(previus: Floor, Arr: Array<Floor>) {
-    const closest = Arr.reduce((a, b) => {
-        return Math.abs(b.floorNumber - previus.floorNumber) < Math.abs(a.floorNumber - previus.floorNumber)
-            ? b
-            : a;
+// Shortest Seek Time First : return arr closest from previus in first position
+export function SSTF(previus: Floor, Arr: Array<Floor>): Array<Floor> {
+    if (Arr.length <= 1) return Arr;
+
+    const closest = Arr.reduce((prev, curr) => {
+        return Math.abs(curr.floorNumber - previus.floorNumber) < Math.abs(prev.floorNumber - previus.floorNumber)
+            ? curr
+            : prev;
     });
 
-    swapArrEl(Arr[0], Arr.indexOf(closest), Arr);
+    swapArrEl(0, Arr.indexOf(closest), Arr);
+
+    var p = Arr.map((el) => el.floorNumber);
+    console.log(`In ${p} closest is ${closest.floorNumber}`);
     return Arr;
 }
 
+// range function from python
 export function range(n: number): Array<number> {
     return Array(n)
         .fill(0)
         .map((e, i) => i + 1);
 }
 
+// randome int interval
 export function randomIntFromInterval(min: number, max: number) {
     // min and max included
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
+// randome with expotential distribution
 export function random_exponential(lambda: number) {
     var random = Math.random();
     return -Math.log(1 - random) / lambda;
 }
 
+// poisson process generation
 export function gen_poisson(lambda: number, T: number) {
     var t = 0;
     var q = new Array();
