@@ -1,4 +1,5 @@
-import { CONFIG, resetSimulation } from "../index";
+import { resetSimulation } from "../index";
+import { CONFIG } from "./Config";
 import { OrdonencementState, PolitiqueR } from "./Utils";
 
 export function initListners() {

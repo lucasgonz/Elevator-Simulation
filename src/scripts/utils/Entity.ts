@@ -1,6 +1,6 @@
 import * as p5 from "p5";
 import { Vector } from "p5";
-import Environement from "../environement/Environement";
+import { CONFIG } from "./Config";
 
 export default class Entity {
     private speed: number = 5;
@@ -21,13 +21,23 @@ export default class Entity {
 
     // update position and direction with given Vector
     moveUpdate = (destination: p5.Vector) => {
-        if (this.pos.x < destination.x) return (this.pos.x += this.speed), (this.direction = "right");
+        if (CONFIG.realTime) {
+            if (this.pos.x < destination.x) return (this.pos.x += this.speed), (this.direction = "right");
 
-        if (this.pos.x > destination.x) return (this.pos.x -= this.speed), (this.direction = "left");
+            if (this.pos.x > destination.x) return (this.pos.x -= this.speed), (this.direction = "left");
 
-        if (this.pos.y <= destination.y) return (this.pos.y += this.speed), (this.direction = "down");
+            if (this.pos.y <= destination.y) return (this.pos.y += this.speed), (this.direction = "down");
 
-        if (this.pos.y >= destination.y) return (this.pos.y -= this.speed), (this.direction = "up");
+            if (this.pos.y >= destination.y) return (this.pos.y -= this.speed), (this.direction = "up");
+        } else {
+            if (this.pos.x < destination.x) return (this.pos.x = destination.x), (this.direction = "right");
+
+            if (this.pos.x > destination.x) return (this.pos.x = destination.x), (this.direction = "left");
+
+            if (this.pos.y <= destination.y) return (this.pos.y = destination.y), (this.direction = "down");
+
+            if (this.pos.y >= destination.y) return (this.pos.y = destination.y), (this.direction = "up");
+        }
     };
 
     // Apply concreate translation on environement

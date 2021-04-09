@@ -1,15 +1,15 @@
 import Entity from "../utils/Entity";
-import { gen_poisson, randomIntFromInterval, random_exponential, range } from "../utils/Utils";
+import ServerDiscret from "../utils/ServerDiscret";
+import { randomIntFromInterval, range } from "../utils/Utils";
 import Desk from "./Desk";
 import Elevator from "./Elevator";
 import Floor from "./Floor";
-import People from "./People";
 
 export default class Environement {
     private config: Config;
-    private second: number = 0;
 
     public entities: Array<Entity>;
+    public server: ServerDiscret | undefined;
 
     constructor(config: Config) {
         this.entities = new Array<Entity>();
@@ -25,6 +25,8 @@ export default class Environement {
         // Add working desk on floor
         for (var i = 1; i < this.getEntity(Floor).length; i++)
             this.entities.push(new Desk(this.getEntity(Floor)[i]));
+
+        ServerDiscret.instance = new ServerDiscret();
     };
 
     // Add new entity to environement
@@ -51,15 +53,6 @@ export default class Environement {
 
     render = (): void => {
         background(240);
-
-        // Generate new people poisson law
-        if (this.second != second()) {
-            for (var val of gen_poisson(0.5, 0)) {
-                this.entities.push(new People());
-            }
-
-            this.second = second();
-        }
 
         // Render each entity && execute any registered action from it
         this.entities.forEach((entity) => {

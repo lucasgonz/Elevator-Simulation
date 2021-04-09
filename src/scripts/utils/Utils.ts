@@ -10,6 +10,26 @@ export enum PolitiqueR {
     Inferieur,
 }
 
+export enum ElevatorState {
+    Waiting = "Waiting",
+    Moving = "Moving",
+    Opening = "Opening",
+    Closing = "Closing",
+}
+
+export enum PeopleState {
+    Mooving = "Mooving",
+    Waiting = "Waiting",
+    Boarding = "Boarding",
+    Riding = "Riding",
+    Exiting = "Exiting",
+    CallElevator = "CallElevator",
+    GoToWork = "GoToWork",
+    Working = "Working",
+    ExitBuilding = "ExitBuilding",
+    Die = "Die",
+}
+
 // First Come First Serd
 export function FCFS(ArrFloor: Array<Floor>): Array<Floor> {
     return ArrFloor;
@@ -81,4 +101,26 @@ export function posFractionInterval(start: number, end: number, fraction: number
     for (var i = start; i < end; i++) arr.push(i);
     var index = Math.round(arr.length * fraction);
     return arr[index];
+}
+
+//@ts-ignore
+export function hms(seconds: number): string {
+    //@ts-ignore
+    return (
+        //@ts-ignore
+        [3600, 60]
+            .reduceRight(
+                //@ts-ignore
+                (p, b) => (r) => [Math.floor(r / b)].concat(p(r % b)),
+                //@ts-ignore
+                (r) => [r]
+            )(seconds)
+            //@ts-ignore
+            .map((a) => a.toString().padStart(2, "0"))
+            .join(":")
+    );
+}
+
+export function toSeconds(number: number) {
+    return Math.round((number % 60) * 100);
 }

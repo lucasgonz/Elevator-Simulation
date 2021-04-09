@@ -1,16 +1,13 @@
 import * as p5 from "p5";
-import { CONFIG, environement } from "..";
+import { CONFIG, getProcessTime } from "../utils/Config";
+import { environement } from "../index";
 import Entity from "../utils/Entity";
 import { FCFS, OrdonencementState, SSTF, posFractionInterval, PolitiqueR } from "../utils/Utils";
 import Floor from "./Floor";
 import People from "./People";
-
-export enum ElevatorState {
-    Waiting,
-    Moving,
-    Opening,
-    Closing,
-}
+import ServerDiscret from "../utils/ServerDiscret";
+import Event from "../utils/Event";
+import { ElevatorState } from "../utils/Utils";
 
 export default class Elevator extends Entity {
     static width: number = 50;
@@ -27,23 +24,35 @@ export default class Elevator extends Entity {
     private previusFloor: Floor | undefined;
 
     public currentFloor: Floor;
-    public currState: ElevatorState;
+    public currState: ElevatorState | undefined;
     public elevatorID: number;
+    public auth: boolean = false;
 
     public queueDestination: Array<Floor>;
     public queueWaitingPeople: Array<People>;
+    public intentions: Array<ElevatorState>;
 
     constructor(elevatorID: number) {
         super();
         this.elevatorID = elevatorID;
+        // queues
         this.queueDestination = new Array<Floor>();
         this.queueWaitingPeople = new Array<People>();
+        this.intentions = new Array<ElevatorState>();
+        this.intentions.push(ElevatorState.Waiting);
         this.currState = ElevatorState.Waiting;
+
+        // Config
         this.ordonencement = CONFIG.ordonencement;
         this.poliiqueR = CONFIG.politiqueR;
+
+        // infos
         this.currentFloor = environement.getEntityRandom(Floor, 1);
         this.previusFloor = this.currentFloor;
         this.pos = this.getStartPos();
+
+        // teste
+        //this.currState = ElevatorState.Waiting;
     }
 
     getStartPos = (): p5.Vector => {
@@ -100,6 +109,25 @@ export default class Elevator extends Entity {
         return this.queueWaitingPeople.filter((people) => people.currentFloor === this.currentFloor);
     };
 
+    getTimeBetweenFloors = (floor1: Floor, floor2: Floor): number => {
+        return Math.abs(floor1.floorNumber - floor2.floorNumber);
+    };
+
+    updateState = () => {
+        this.currState = undefined;
+        this.intentions.shift();
+        var processTime;
+        if (this.intentions[0] === ElevatorState.Moving)
+            processTime =
+                getProcessTime(this.intentions[0]) *
+                this.getTimeBetweenFloors(this.currentFloor, this.queueDestination[0]);
+        else {
+            processTime = getProcessTime(this.intentions[0]);
+        }
+        var event = new Event(this.intentions[0], processTime, this);
+        ServerDiscret.getInstance().addRequest(event);
+    };
+
     run = (): void => {
         switch (this.currState) {
             // Wait if does't have any panned destination
@@ -115,19 +143,25 @@ export default class Elevator extends Entity {
                             this.queueDestination = SSTF(this.previusFloor, this.queueDestination);
                             break;
                     }
-                    this.currState = ElevatorState.Moving;
-                }
-                break;
-
-            /*switch (this.poliiqueR) {
-                    case PolitiqueR.Millieu:
-                        var floors = environement.getEntity(Floor);
-                        this.goToFloor(Math.round(floors.length / 2));
-                        break;
-                    case PolitiqueR.Inferieur:
-                        this.goToFloor(this.currentFloor.floorNumber - 1);
-                        break;
+                    this.intentions.push(ElevatorState.Moving);
+                    this.updateState();
+                    this.auth = true;
+                } /*else if (this.auth == true) {
+                    this.auth = false;
+                    switch (this.poliiqueR) {
+                        case PolitiqueR.Millieu:
+                            var floors = environement.getEntity(Floor);
+                            this.queueDestination.push(floors[Math.round(floors.length / 2)]);
+                            break;
+                        case PolitiqueR.Inferieur:
+                            if (this.currentFloor.floorNumber != 0) {
+                                var floors = environement.getEntity(Floor);
+                                this.queueDestination.push(floors[this.currentFloor.floorNumber - 1]);
+                            }
+                            break;
+                    }
                 }*/
+                break;
 
             // Update dest until arried to desired destination
             case ElevatorState.Moving:
@@ -138,8 +172,8 @@ export default class Elevator extends Entity {
                 if (this.hasArrived(destination, "Vert")) {
                     this.currentFloor = this.queueDestination[0];
                     this.direction = undefined;
-                    this.previusFloor = this.queueDestination.shift();
-                    this.currState = ElevatorState.Opening;
+                    this.intentions.push(ElevatorState.Opening);
+                    this.updateState();
                     //if (this.queueWaitingPeople.length <= 0) this.currState = ElevatorState.Waiting;
                 } else {
                     this.moveUpdate(destination);
@@ -149,21 +183,28 @@ export default class Elevator extends Entity {
             // Open gate with given spped && wait for people waiting to be in
             case ElevatorState.Opening:
                 if (!this.isDoorOpen()) {
-                    this.doorDisplacement += this.doorSpeed;
+                    CONFIG.realTime
+                        ? (this.doorDisplacement += this.doorSpeed)
+                        : (this.doorDisplacement = Elevator.width / 2);
                     break;
                 }
                 // Wait for every one waiting to get in
-                if (this.peopleWaitingForFloor(this.currentFloor).length == 0)
-                    this.currState = ElevatorState.Closing;
+                //if (this.peopleWaitingForFloor(this.currentFloor).length == 0)
+                this.intentions.push(ElevatorState.Closing);
+                this.updateState();
                 break;
 
             // Close gate with given spped
             case ElevatorState.Closing:
                 if (!this.isDoorClose()) {
-                    this.doorDisplacement -= this.doorSpeed;
+                    CONFIG.realTime
+                        ? (this.doorDisplacement -= this.doorSpeed)
+                        : (this.doorDisplacement = Elevator.width / 4);
                     break;
                 }
-                this.currState = ElevatorState.Waiting;
+                this.intentions.push(ElevatorState.Waiting);
+                this.updateState();
+                this.previusFloor = this.queueDestination.shift();
                 break;
         }
     };

@@ -1,7 +1,6 @@
 import * as p5 from "p5";
 import Entity from "../utils/Entity";
 import Elevator from "./Elevator";
-import People from "./People";
 
 export default class Floor extends Entity {
     private width: number = width;

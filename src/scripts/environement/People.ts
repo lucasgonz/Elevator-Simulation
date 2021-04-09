@@ -1,43 +1,41 @@
 import * as p5 from "p5";
-import { environement, globalStats } from "..";
+import { environement, globalStats } from "../index";
 import Entity from "../utils/Entity";
 import Elevator from "./Elevator";
 import Floor from "./Floor";
-import { ElevatorState } from "./Elevator";
+import { ElevatorState } from "../utils/Utils";
 import Desk from "./Desk";
-
-enum PeopleState {
-    Mooving,
-    Waiting,
-    Boarding,
-    Riding,
-    Exiting,
-    CallElevator,
-    GoToWork,
-    Working,
-    ExitBuilding,
-    Die,
-}
+import ServerDiscret from "../utils/ServerDiscret";
+import Event from "../utils/Event";
+import { PeopleState } from "../utils/Utils";
+import { getProcessTime } from "../utils/Config";
 
 export default class People extends Entity {
     private currentElevator: Elevator;
     public currentFloor: Floor;
+
     private desiredDestination: p5.Vector;
     private desiredFloor: Floor;
-    private color: any = color(random(255), random(255), random(255));
-    private intention: Array<PeopleState>;
-    private workingTime: number = 10;
 
+    private color: any = color(random(255), random(255), random(255));
+
+    public intentions: Array<PeopleState>;
+    public currState: PeopleState | undefined;
+
+    private workingTime: number = 10;
     public waiting: number = 0;
 
     constructor() {
         super();
         // Every one start first floor
         this.currentFloor = environement.getEntity(Floor)[0];
-        this.desiredFloor = this.getDesiredFloor();
         this.currentElevator = this.getDesiredElevator();
-        this.desiredDestination = this.currentElevator.getWaitingPosFloor(this.currentFloor);
-        this.intention = [
+
+        // get desired
+        this.desiredDestination = this.currentElevator.getWaitingPosFloor(this.currentFloor).copy();
+        this.desiredFloor = this.getDesiredFloor();
+
+        this.intentions = [
             //Phase 1
             PeopleState.Mooving,
             PeopleState.CallElevator,
@@ -95,11 +93,15 @@ export default class People extends Entity {
     };
 
     updateState = () => {
-        this.intention.shift();
+        this.currState = undefined;
+        this.intentions.shift();
+        var event = new Event(this.intentions[0], getProcessTime(this.intentions[0]), this);
+        ServerDiscret.getInstance().addRequest(event);
     };
 
     run = (): void => {
-        switch (this.intention[0]) {
+        //console.log(this.currState);
+        switch (this.currState) {
             // Wainting for destination
             case PeopleState.Mooving:
                 if (this.hasArrived(this.desiredDestination, "Horz")) {
@@ -117,7 +119,6 @@ export default class People extends Entity {
                 break;
 
             case PeopleState.Waiting:
-                this.waiting += 1;
                 if (this.currentElevator?.currState == ElevatorState.Moving) return;
                 if (this.currentElevator?.currentFloor == this.currentFloor) {
                     this.desiredDestination = this.currentElevator.pos.copy();
@@ -176,7 +177,7 @@ export default class People extends Entity {
                 break;
 
             case PeopleState.Die:
-                globalStats.waitingPerception.push(this.waiting);
+                console.log(this.waiting);
                 environement.removeEnity(this);
                 break;
         }
