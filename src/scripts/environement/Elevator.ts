@@ -1,5 +1,5 @@
 import * as p5 from "p5";
-import { CONFIG, getProcessTime } from "../utils/Config";
+import { CONFIG, TIME_STATE } from "../utils/Config";
 import { environement } from "../index";
 import Entity from "../utils/Entity";
 import { FCFS, OrdonencementState, SSTF, posFractionInterval, PolitiqueR } from "../utils/Utils";
@@ -50,9 +50,6 @@ export default class Elevator extends Entity {
         this.currentFloor = environement.getEntityRandom(Floor, 1);
         this.previusFloor = this.currentFloor;
         this.pos = this.getStartPos();
-
-        // teste
-        //this.currState = ElevatorState.Waiting;
     }
 
     getStartPos = (): p5.Vector => {
@@ -119,10 +116,10 @@ export default class Elevator extends Entity {
         var processTime;
         if (this.intentions[0] === ElevatorState.Moving)
             processTime =
-                getProcessTime(this.intentions[0]) *
+                TIME_STATE[this.intentions[0]] *
                 this.getTimeBetweenFloors(this.currentFloor, this.queueDestination[0]);
         else {
-            processTime = getProcessTime(this.intentions[0]);
+            processTime = TIME_STATE[this.intentions[0]];
         }
         var event = new Event(this.intentions[0], processTime, this);
         ServerDiscret.getInstance().addRequest(event);

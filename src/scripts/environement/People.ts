@@ -8,7 +8,7 @@ import Desk from "./Desk";
 import ServerDiscret from "../utils/ServerDiscret";
 import Event from "../utils/Event";
 import { PeopleState } from "../utils/Utils";
-import { getProcessTime } from "../utils/Config";
+import { TIME_STATE } from "../utils/Config";
 
 export default class People extends Entity {
     private currentElevator: Elevator;
@@ -95,7 +95,7 @@ export default class People extends Entity {
     updateState = () => {
         this.currState = undefined;
         this.intentions.shift();
-        var event = new Event(this.intentions[0], getProcessTime(this.intentions[0]), this);
+        var event = new Event(this.intentions[0], TIME_STATE[this.intentions[0]], this);
         ServerDiscret.getInstance().addRequest(event);
     };
 

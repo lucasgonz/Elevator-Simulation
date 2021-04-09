@@ -12,7 +12,25 @@ export const CONFIG = {
 
 // seconds
 
-export function getProcessTime(state: any) {
+export const TIME_STATE = {
+    [ElevatorState.Waiting]: 0,
+    [ElevatorState.Closing]: 0,
+    [ElevatorState.Opening]: 0,
+    [ElevatorState.Waiting]: 0,
+    [ElevatorState.Moving]: 10,
+    [PeopleState.Boarding]: 0,
+    [PeopleState.CallElevator]: 0,
+    [PeopleState.Die]: 0,
+    [PeopleState.ExitBuilding]: 0,
+    [PeopleState.Exiting]: 0,
+    [PeopleState.GoToWork]: 5,
+    [PeopleState.Mooving]: 0,
+    [PeopleState.Riding]: 0,
+    [PeopleState.Waiting]: 0,
+    [PeopleState.Working]: toSeconds(randomIntFromInterval(0, 60)),
+};
+
+/*export function getProcessTime(state: any) {
     switch (state) {
         case ElevatorState.Closing:
             return 3;
@@ -47,4 +65,4 @@ export function getProcessTime(state: any) {
         default:
             return 0;
     }
-}
+}*/

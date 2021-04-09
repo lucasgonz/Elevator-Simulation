@@ -2,31 +2,29 @@ import People from "../environement/People";
 import Event from "./Event";
 import { gen_poisson, hms } from "./Utils";
 import { environement } from "..";
-import { getProcessTime } from "./Config";
+import { TIME_STATE } from "./Config";
 import { PeopleState } from "../utils/Utils";
 
 export default class ServerDiscret {
     public static instance: ServerDiscret;
-
     static walkingTime: number = 6;
     static clock: number;
 
-    public eventQueue: Array<Event>;
+    public eventQueue: Array<Event> = new Array<Event>();
     public debug: boolean = true;
 
     constructor() {
         ServerDiscret.clock = 0;
-        this.eventQueue = new Array();
         setInterval(() => {
             this.run();
-        }, 500);
+        }, 100);
     }
 
     public static getInstance(): ServerDiscret {
         return ServerDiscret.instance;
     }
 
-    addRequest = (event: Event) => {
+    addRequest = (event: Event): void => {
         this.eventQueue.push(event);
     };
 
@@ -40,10 +38,6 @@ export default class ServerDiscret {
 
         return closest.processTime;
     };
-
-    isBusy(): boolean {
-        return this.eventQueue.length > 0 ? true : false;
-    }
 
     process = (): void => {
         // get event to process ==> time under clock

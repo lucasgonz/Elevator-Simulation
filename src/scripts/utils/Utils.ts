@@ -48,7 +48,7 @@ export function SSTF(previus: Floor, Arr: Array<Floor>): Array<Floor> {
     swapArrEl(0, Arr.indexOf(closest), Arr);
 
     var p = Arr.map((el) => el.floorNumber);
-    console.log(`In ${p} closest is ${closest.floorNumber}`);
+    //console.log(`In ${p} closest is ${closest.floorNumber}`);
     return Arr;
 }
 
