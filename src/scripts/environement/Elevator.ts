@@ -143,21 +143,27 @@ export default class Elevator extends Entity {
                     this.intentions.push(ElevatorState.Moving);
                     this.updateState();
                     this.auth = true;
-                } /*else if (this.auth == true) {
-                    this.auth = false;
+                }
+                if (this.queueDestination.length == 0 && this.auth == true) {
                     switch (this.poliiqueR) {
                         case PolitiqueR.Millieu:
                             var floors = environement.getEntity(Floor);
-                            this.queueDestination.push(floors[Math.round(floors.length / 2)]);
+                            this.queueDestination.push(floors[Math.round(floors.length / 2) - 1]);
+                            this.intentions.push(ElevatorState.Moving);
+                            this.updateState();
+                            this.auth = false;
                             break;
                         case PolitiqueR.Inferieur:
-                            if (this.currentFloor.floorNumber != 0) {
+                            if (this.currentFloor.floorNumber > 0) {
                                 var floors = environement.getEntity(Floor);
                                 this.queueDestination.push(floors[this.currentFloor.floorNumber - 1]);
+                                this.intentions.push(ElevatorState.Moving);
+                                this.updateState();
+                                this.auth = false;
                             }
                             break;
                     }
-                }*/
+                }
                 break;
 
             // Update dest until arried to desired destination
@@ -185,8 +191,6 @@ export default class Elevator extends Entity {
                         : (this.doorDisplacement = Elevator.width / 2);
                     break;
                 }
-                // Wait for every one waiting to get in
-                //if (this.peopleWaitingForFloor(this.currentFloor).length == 0)
                 this.intentions.push(ElevatorState.Closing);
                 this.updateState();
                 break;

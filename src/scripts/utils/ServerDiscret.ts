@@ -63,7 +63,7 @@ export default class ServerDiscret {
             // register in environement
             environement.entities.push(people);
             // Schedule arrival
-            events.push(new Event(people.intentions[0], 5, people));
+            events.push(new Event(people.intentions[0], processTime, people));
             this.debug = false;
         }
 
@@ -84,5 +84,6 @@ export default class ServerDiscret {
 
         // process event with right time
         this.process();
+        console.log(hms(ServerDiscret.clock));
     }
 }

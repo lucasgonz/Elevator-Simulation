@@ -99,6 +99,12 @@ export default class People extends Entity {
         ServerDiscret.getInstance().addRequest(event);
     };
 
+    swapElevator = (elev1: Elevator, elev2: Elevator) => {
+        elev1.removeFromWaiting(this);
+        this.currentElevator = elev2;
+        this.currentElevator.queueWaitingPeople.push(this);
+    };
+
     run = (): void => {
         //console.log(this.currState);
         switch (this.currState) {
@@ -119,11 +125,22 @@ export default class People extends Entity {
                 break;
 
             case PeopleState.Waiting:
-                if (this.currentElevator?.currState == ElevatorState.Moving) return;
+                // if (this.currentElevator?.currState == ElevatorState.Moving) return;
+                var elevators: Elevator[] | undefined = environement
+                    .getEntity(Elevator)
+                    .filter((elevator: Elevator) => elevator.currentFloor == this.currentFloor);
+
                 if (this.currentElevator?.currentFloor == this.currentFloor) {
+                    if (this.currentElevator.currState == ElevatorState.Moving) return;
+                    this.desiredDestination = this.currentElevator.pos.copy();
+                    this.updateState();
+                } else if (elevators[0]?.currentFloor == this.currentFloor) {
+                    this.swapElevator(this.currentElevator, elevators[0]);
+                    if (this.currentElevator.currState == ElevatorState.Moving) return;
                     this.desiredDestination = this.currentElevator.pos.copy();
                     this.updateState();
                 }
+
                 break;
 
             case PeopleState.Boarding:

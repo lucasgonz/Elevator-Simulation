@@ -17,7 +17,6 @@ export function initListners() {
 
         if (this.value === "Millieu") CONFIG.politiqueR = PolitiqueR.Millieu;
         if (this.value === "Inferieur") CONFIG.politiqueR = PolitiqueR.Inferieur;
-        console.log(CONFIG.politiqueR);
     });
 
     // Nombre elevator
