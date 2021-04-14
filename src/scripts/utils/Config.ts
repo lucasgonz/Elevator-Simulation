@@ -1,4 +1,4 @@
-import { OrdonencementState, PolitiqueR, randomIntFromInterval, toSeconds } from "./Utils";
+import { OrdonencementState, PolitiqueR, randomIntFromInterval, random_exponential, toSeconds } from "./Utils";
 import { ElevatorState } from "../utils/Utils";
 import { PeopleState } from "../utils/Utils";
 
@@ -23,11 +23,11 @@ export const TIME_STATE = {
     [PeopleState.Die]: 0,
     [PeopleState.ExitBuilding]: 0,
     [PeopleState.Exiting]: 0,
-    [PeopleState.GoToWork]: 5,
+    [PeopleState.GoToWork]: 0,
     [PeopleState.Mooving]: 0,
     [PeopleState.Riding]: 0,
     [PeopleState.Waiting]: 0,
-    [PeopleState.Working]: toSeconds(randomIntFromInterval(0, 60)),
+    [PeopleState.Working]: toSeconds(random_exponential(1) * 60),
 };
 
 /*export function getProcessTime(state: any) {

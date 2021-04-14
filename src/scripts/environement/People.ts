@@ -1,5 +1,5 @@
 import * as p5 from "p5";
-import { environement, globalStats } from "../index";
+import { environement, globalStats, myChart } from "../index";
 import Entity from "../utils/Entity";
 import Elevator from "./Elevator";
 import Floor from "./Floor";
@@ -194,7 +194,14 @@ export default class People extends Entity {
                 break;
 
             case PeopleState.Die:
-                console.log(this.waiting);
+                globalStats.waitingPerception.push(this.waiting);
+                globalStats.death = myChart.data.datasets[0].data.length;
+                //@ts-ignore
+                myChart.data.labels.push(globalStats.death);
+                myChart.data.datasets[0].data = globalStats.waitingPerception;
+
+                myChart.update();
+
                 environement.removeEnity(this);
                 break;
         }

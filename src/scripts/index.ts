@@ -1,7 +1,8 @@
 import Environement from "./environement/Environement";
 import { initListners } from "./utils/LisenersEnv";
 import { CONFIG } from "./utils/Config";
-import { ElevatorState, random_exponential } from "./utils/Utils";
+import Chart from "chart.js/auto";
+import ServerDiscret from "./utils/ServerDiscret";
 
 window.onload = initListners;
 
@@ -11,6 +12,7 @@ window.draw = draw;
 
 export const globalStats = {
     waitingPerception: new Array<number>(),
+    death: 0,
 };
 
 export var environement: Environement = new Environement(CONFIG);
@@ -18,6 +20,10 @@ export var environement: Environement = new Environement(CONFIG);
 export function resetSimulation() {
     environement = new Environement(CONFIG);
     environement.init();
+    myChart.data.labels = [];
+    myChart.data.datasets[0].data = [];
+
+    myChart.update();
 }
 
 function setup() {
@@ -34,3 +40,26 @@ function draw() {
     // environement life cycle
     environement.render();
 }
+
+// @ts-ignore
+var ctx = document.getElementById("myChart").getContext("2d");
+
+export var myChart = new Chart(ctx, {
+    type: "line",
+    data: {
+        //@ts-ignore
+        labels: [],
+        datasets: [
+            {
+                label: "waitingTime",
+                data: [],
+                backgroundColor: "rgba(54, 49, 235, 1)",
+                borderColor: "rgba(54, 49, 235, 1)",
+                borderWidth: 1,
+            },
+        ],
+    },
+    options: {
+        scales: {},
+    },
+});

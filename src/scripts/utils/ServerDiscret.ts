@@ -1,6 +1,6 @@
 import People from "../environement/People";
 import Event from "./Event";
-import { gen_poisson, hms } from "./Utils";
+import { gen_poisson, hms, random_exponential, toSeconds } from "./Utils";
 import { environement } from "..";
 import { TIME_STATE } from "./Config";
 import { PeopleState } from "../utils/Utils";
@@ -55,7 +55,7 @@ export default class ServerDiscret {
         var events = new Array();
 
         //if (this.debug) {
-        for (var processTime of gen_poisson(0.5, 0.05)) {
+        for (var processTime of gen_poisson(3, 0.01)) {
             // Scale number esier read
             processTime = Math.round(processTime * 100);
             //if (this.debug) {
@@ -79,11 +79,10 @@ export default class ServerDiscret {
             .filter((people: People) => people.currState === PeopleState.Waiting)
             .forEach((people: People) => {
                 people.waiting += ServerDiscret.clock - lastClock;
-                //console.log(people.waiting);
             });
 
         // process event with right time
         this.process();
-        console.log(hms(ServerDiscret.clock));
+        //console.log(hms(ServerDiscret.clock));
     }
 }
