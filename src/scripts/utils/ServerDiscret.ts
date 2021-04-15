@@ -7,11 +7,8 @@ import { PeopleState } from "../utils/Utils";
 
 export default class ServerDiscret {
     public static instance: ServerDiscret;
-    static walkingTime: number = 6;
-    static clock: number;
-
+    public static clock: number;
     public eventQueue: Array<Event> = new Array<Event>();
-    public debug: boolean = true;
 
     constructor() {
         ServerDiscret.clock = 0;
@@ -45,7 +42,6 @@ export default class ServerDiscret {
 
         toProcess.forEach((el: Event) => {
             el.execute();
-            //console.log(hms(ServerDiscret.clock), el.state, ` Process time ${getProcessTime(el.state)}`);
             this.eventQueue.splice(this.eventQueue.indexOf(el), 1);
         });
     };
@@ -54,17 +50,15 @@ export default class ServerDiscret {
         // time to add for next arrival poisson number
         var events = new Array();
 
-        //if (this.debug) {
         for (var processTime of gen_poisson(3, 0.01)) {
-            // Scale number esier read
-            processTime = Math.round(processTime * 100);
-            //if (this.debug) {
+            // process Time to seconds
+            processTime = toSeconds(processTime * 60);
+
             var people = new People();
             // register in environement
             environement.entities.push(people);
             // Schedule arrival
             events.push(new Event(people.intentions[0], processTime, people));
-            this.debug = false;
         }
 
         // fill events
@@ -72,6 +66,7 @@ export default class ServerDiscret {
 
         var lastClock = Number(ServerDiscret.clock);
 
+        // Avance clock to closest event
         ServerDiscret.clock = this.getClosestEventTime(this.eventQueue, ServerDiscret.clock);
 
         environement

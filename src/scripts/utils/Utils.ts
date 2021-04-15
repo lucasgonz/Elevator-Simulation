@@ -30,25 +30,23 @@ export enum PeopleState {
     Die = "Die",
 }
 
-// First Come First Serd
+// First Come First Served
 export function FCFS(ArrFloor: Array<Floor>): Array<Floor> {
     return ArrFloor;
 }
 
 // Shortest Seek Time First : return arr closest from previus in first position
-export function SSTF(previus: Floor, Arr: Array<Floor>): Array<Floor> {
+export function SSTF(actual: Floor, Arr: Array<Floor>): Array<Floor> {
     if (Arr.length <= 1) return Arr;
 
     const closest = Arr.reduce((prev, curr) => {
-        return Math.abs(curr.floorNumber - previus.floorNumber) < Math.abs(prev.floorNumber - previus.floorNumber)
+        return Math.abs(curr.floorNumber - actual.floorNumber) < Math.abs(prev.floorNumber - actual.floorNumber)
             ? curr
             : prev;
     });
 
     swapArrEl(0, Arr.indexOf(closest), Arr);
-
     var p = Arr.map((el) => el.floorNumber);
-    //console.log(`In ${p} closest is ${closest.floorNumber}`);
     return Arr;
 }
 
@@ -65,7 +63,7 @@ export function randomIntFromInterval(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-// randome with expotential distribution
+// random with expotential distribution
 export function random_exponential(lambda: number) {
     var random = Math.random();
     return -Math.log(1 - random) / lambda;

@@ -201,6 +201,10 @@ export default class People extends Entity {
                 myChart.data.datasets[0].data = globalStats.waitingPerception;
 
                 myChart.update();
+                //@ts-ignore
+                document.getElementById("averageWait")?.innerHTML = (
+                    globalStats.waitingPerception.reduce((a, b) => a + b, 0) / globalStats.waitingPerception.length
+                ).toString();
 
                 environement.removeEnity(this);
                 break;
